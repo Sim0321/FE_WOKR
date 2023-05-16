@@ -1,14 +1,17 @@
 import { GetOKR } from '../../../apis/apiGET';
 import Arrow from '../../../assets/dropdownArrow.png';
+import { okrDataAtom } from '../../../store/store';
 import {
   DropIcon,
   OkrDropBox,
   OkrDropContainer,
   OkrItem,
+  TodoDropIcon,
 } from './dropDown.styled';
 import { useDropDown } from './dropdown';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useRef } from 'react';
+import { useRecoilValue } from 'recoil';
 
 const OkrDropDown = ({ setKid, setOid, title }) => {
   const dropDownRef = useRef(null);
@@ -22,6 +25,7 @@ const OkrDropDown = ({ setKid, setOid, title }) => {
     onSuccess: response => {},
     onError: response => {},
   });
+  // const getOkrData = useRecoilValue(okrDataAtom);
 
   const ValueClick = e => {
     setIsOpen(!isOpen);
@@ -49,11 +53,11 @@ const OkrDropDown = ({ setKid, setOid, title }) => {
         placeholder={
           title
             ? '선택하지 않으면 기존과 동일합니다.'
-            : 'none 핵심결과 선택하지 않고 To Do 작성'
+            : 'none Key Result 선택하지 않고 To-Do 추가하기'
         }
       />
 
-      <DropIcon src={Arrow} />
+      <TodoDropIcon className='todoDropicon' />
       {isOpen && (
         <OkrDropContainer>
           <h2>KR 핵심 결과 선택</h2>

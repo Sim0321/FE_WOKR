@@ -1,6 +1,7 @@
 import { CreateObjective } from '../../../apis/apiPOST';
 import calender from '../../../assets/calender.png';
 import close from '../../../assets/close.png';
+import info from '../../../assets/info.png';
 import object from '../../../assets/object.png';
 import Toast from '../Toast';
 import ColorDropDown from '../globaldropdown/ColorDropDown';
@@ -135,29 +136,65 @@ const OkrModal = ({ onCloseModal, modalRef, modalOutSideClick }) => {
     },
   });
 
+  //튤팁
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const onMouseOverHandler = () => {
+    setShowTooltip(true);
+  };
+  const onMouseOutHandler = () => {
+    setShowTooltip(false);
+  };
+
+  useEffect(() => {
+    if (showTooltip && objInfo.objective.length === 0) {
+      setShowTooltip(true);
+    } else if (objInfo.objective.length > 0) {
+      setShowTooltip(false);
+    } else {
+      setShowTooltip(false);
+    }
+  }, [showTooltip, objInfo]);
+
+  const onChangeHandler = e => {
+    const { name, value } = e.target;
+    setObjInfo({ ...objInfo, [name]: value });
+    if (value === '') {
+      setShowTooltip(true);
+    } else {
+      setShowTooltip(false);
+    }
+  };
+
   return (
     <>
       <ModalBackground ref={modalRef} onClick={modalOutSideClick} />
       <ModalBox>
         <>
           <div className='header'>
-            <h2>OKR 추가 - 목표, 기간, 색상</h2>
+            <h2>Objective 추가</h2>
             <img src={close} alt='' onClick={onCloseModal} />
           </div>
           <OKRBox>
             <div className='object itemBox'>
               <img src={object} alt='' />
               <input
+                onMouseOver={onMouseOverHandler}
+                onMouseOut={onMouseOutHandler}
                 type='text'
-                placeholder='목표'
+                placeholder='ex. 제품의 브랜드 이미지 높이기'
                 className='input'
                 name='objective'
-                maxLength='17'
-                onChange={event => {
-                  OnChange(event, objInfo, setObjInfo);
-                }}
+                onChange={onChangeHandler}
               />
             </div>
+
+            {showTooltip && (
+              <div className='ObjectTooltip'>
+                <img src={info} alt='info' />
+                <p>Objective : 우리가 최종적으로 이루고자 하는 정성적 목표</p>
+              </div>
+            )}
 
             <div className='date'>
               <img src={calender} alt='' />
@@ -170,7 +207,6 @@ const OkrModal = ({ onCloseModal, modalRef, modalOutSideClick }) => {
                   weekDays={weekDays}
                   format={format}
                   placeholder='시작일'
-                  // readOnly
                   value={startDate.date || ''}
                   onChange={convertStart}
                   animations={[
@@ -223,7 +259,7 @@ const OkrModal = ({ onCloseModal, modalRef, modalOutSideClick }) => {
               확인
             </button>
           </div>
-          <Toast />
+          {/* <Toast /> */}
         </>
       </ModalBox>
     </>

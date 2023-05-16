@@ -13,6 +13,7 @@ import {
   ModalBackground,
   ModalBox,
   OKRBox,
+  TodoBox,
   ToggleContainer,
 } from './modal.styled';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -110,7 +111,7 @@ const TodoModal = ({
     });
   };
 
-  console.log(todoInfo);
+  // console.log(todoInfo);
 
   //endDate 변환 함수 년-월
   const convertEnd = (date, format = defaultFormat.format) => {
@@ -162,15 +163,17 @@ const TodoModal = ({
 
   const { mutate: createTodo } = useMutation(CreateTodo, {
     onSuccess: response => {
+      console.log('생성됨');
       if (process.env.NODE_ENV !== 'development') {
         ReactGA.event({
           category: '버튼',
           action: 'TODO 생성',
         });
       }
-      queryClient.invalidateQueries(['TODO']);
-      queryClient.invalidateQueries(['ALLTODO']);
-      queryClient.invalidateQueries(['PASTTODO']);
+      queryClient.invalidateQueries(['ToDo']);
+
+      // queryClient.invalidateQueries(['ALLTODO']);
+      // queryClient.invalidateQueries(['PASTTODO']);
       toast('TODO가 생성되었습니다.');
     },
     onError: response => {
@@ -234,17 +237,16 @@ const TodoModal = ({
           <h2>OKR 추가 - 목표, 기간, 색상</h2>
           <img src={close} alt='' onClick={onCloseTodoModal} />
         </div>
-        <OKRBox>
+        <TodoBox>
           <div className='object itemBox'>
             <img src={todoOkr} alt='' />
             <OkrDropDown setKid={setKid} setOid={setOid} />
           </div>
-
           <div className='object itemBox'>
             <img src={todo} alt='' />
             <input
               type='text'
-              placeholder='To Do 내용을 작성하세요'
+              placeholder='할 일을 작성해 주세요'
               className='input'
               name='toDo'
               maxLength='25'
@@ -253,12 +255,11 @@ const TodoModal = ({
               }}
             />
           </div>
-
           <div className='object itemBox'>
             <img src={memo} alt='' />
             <input
               type='text'
-              placeholder='Memo 내용을 작성하세요'
+              placeholder='메모를 작성해 주세요'
               className='input'
               name='memo'
               onChange={event => {
@@ -267,6 +268,7 @@ const TodoModal = ({
             />
           </div>
 
+          {/* <textarea name='' id='' cols='310' rows='310'></textarea> */}
           <div className='date'>
             <img src={calender} alt='' />
             <div className='dateBox'>
@@ -442,7 +444,7 @@ const TodoModal = ({
               <PriorityDropDown todoInfo={todoInfo} setTodoInfo={setTodoInfo} />
             </div>
           </div>
-        </OKRBox>
+        </TodoBox>
 
         <div className='btnBox'>
           <button onClick={onCloseTodoModal} className='cancel'>

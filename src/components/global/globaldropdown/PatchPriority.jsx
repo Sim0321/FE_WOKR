@@ -1,6 +1,6 @@
 import { GetTodo } from '../../../apis/apiGET';
 import Arrow from '../../../assets/dropdownArrow.png';
-import { PrioritySelect, DropIcon } from './dropDown.styled';
+import { PrioritySelect, DropIcon, TodoDropIcon } from './dropDown.styled';
 import { useDropDown, priority } from './dropdown';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useRef } from 'react';
@@ -10,10 +10,10 @@ const PatchPriority = ({ title, setTitle }) => {
   const [isOpen, setIsOpen] = useDropDown(dropDownRef, false);
   const [finalValue, setFinalValue] = useState(`${title.priority}순위`);
 
-  const { data: getTodoData } = useQuery(['TODO'], GetTodo, {
-    onSuccess: response => {},
-    onError: response => {},
-  });
+  // const { data: getTodoData } = useQuery(['TODO'], GetTodo, {
+  //   onSuccess: response => {},
+  //   onError: response => {},
+  // });
   const DropDownItem = ({
     value,
     setFinalValue,
@@ -53,10 +53,10 @@ const PatchPriority = ({ title, setTitle }) => {
       <input
         type='text'
         value={finalValue}
-        readOnly={true}
+        // readOnly
         onClick={() => setIsOpen(!isOpen)}
       />
-      <DropIcon src={Arrow} />
+      <TodoDropIcon src={Arrow} />
       {isOpen && (
         <ul>
           {priority.list.map((el, index) => (

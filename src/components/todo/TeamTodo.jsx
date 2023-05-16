@@ -1,14 +1,61 @@
 import { GetUser } from '../../apis/apiGET';
 import badgeB from '../../assets/badgeB.png';
-import { StTeam } from './tododetail.styled';
+import {
+  dateArray,
+  teamArray,
+  teamMemberAtom,
+  todoDateInfo,
+} from '../../store/store';
+import { StTeam } from '../../styles/tododetail.styled';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 
 const TeamTodo = () => {
+  const setMember = useSetRecoilState(teamMemberAtom);
+  // console.log('member --->', member);
+  // const setTeamMemberAtom = useSetRecoilState(teamMemberAtom);
+
+  const [info, setInfo] = useRecoilState(todoDateInfo);
+  const [team, setTeam] = useRecoilState(dateArray);
+  // console.log('team :', team);
+
   const { data: getMember } = useQuery(['MEMBER'], GetUser, {
-    onSuccess: response => {},
+    onSuccess: response => {
+      // console.log(response);
+      setMember(response);
+    },
     onError: response => {},
   });
+
+  const clickMember = e => {
+    const id = Number(e.target.id);
+
+    if (info.teamMembers.includes(id) === false) {
+      setInfo({
+        ...info,
+        teamMembers: [...info.teamMembers, Number(e.target.id)],
+      });
+      setTeam({
+        ...team,
+        teamMembers: [...team.teamMembers, Number(e.target.id)],
+      });
+    } else if (
+      info.teamMembers.includes(id) === true &&
+      info.teamMembers.length > 1
+    ) {
+      const removeId = info.teamMembers.filter(el => el !== id);
+
+      setInfo({
+        ...info,
+        teamMembers: removeId,
+      });
+      setTeam({
+        ...team,
+        teamMembers: removeId,
+      });
+    }
+  };
 
   const defaultDay = new Date().getDay();
   let day;
@@ -33,20 +80,27 @@ const TeamTodo = () => {
   }월 ${new Date().getDate()}일 ${day}`;
   return (
     <StTeam>
-      <div className='title'>
-        <img src={badgeB} alt='' />
-        <div>나의 팀 To - Do 현황</div>
-      </div>
-      <div className='today'>{today}</div>
-
-      {getMember?.map(el => (
-        <div className='member' key={el.userId}>
-          {/* <div className={el.myInfo === true ? 'have' : 'none'}></div> */}
-          <div className='have'></div>
-          <div className='name'>{el.name}</div>
-          <div className='number'>{el.createToDoCount}</div>
+      <div className='teamWrap'>
+        <div className='title'>
+          <img src={badgeB} alt='' />
+          <div>나의 팀 To - Do 현황</div>
         </div>
-      ))}
+        <div className='today'>{today}</div>
+
+        {getMember?.map(el => (
+          <div className='member' key={el.userId}>
+            <div
+              id={el.userId}
+              className={
+                info.teamMembers.includes(el.userId) === true ? 'have' : 'none'
+              }
+              onClick={clickMember}></div>
+            {/* <div className='have'></div> */}
+            <div className='name'>{el.name}</div>
+            <div className='number'>{el.createToDoCount}</div>
+          </div>
+        ))}
+      </div>
     </StTeam>
   );
 };

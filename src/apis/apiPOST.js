@@ -24,3 +24,24 @@ export async function CreateTodo({ Oid, Kid, Info }) {
   const { data } = await api.post(`api/${Oid}/${Kid}/todo`, Info);
   return data;
 }
+
+export async function PostExpirationTodo({ info }) {
+  // console.log(Info)
+  const { data } = await api.post(`api/todo/expiration`, info);
+  return data;
+}
+
+export async function PostProgressTodo({ info }) {
+  const { data } = await api.post(`api/todo/progress`, info);
+  return data;
+}
+
+export async function PostCompletionTodo({ info }) {
+  const { data } = await api.post(`api/todo/completion`, info);
+  return data;
+}
+
+export async function PostWeek({ forData }) {
+  const { data } = await api.post(`api/todo/week`, forData);
+  return data;
+}

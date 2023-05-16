@@ -1,120 +1,120 @@
-import { GetUserInfo } from '../apis/apiGET';
-import Calendar from '../components/calendar/Calendar';
-import CompanyOKR from '../components/companyOKR/companyOKR';
-import Modal from '../components/global/globalModal/AlertModalTest';
-import Portal from '../components/global/globalModal/Potal';
-import DashBoardCalendar from '../components/mainpage/Calendar';
-import DashBoardOKR from '../components/mainpage/OKR';
-import DashBoardTodo from '../components/mainpage/ToDo';
-import Tutorial from '../components/mainpage/Tutorial';
-import TeamOKR from '../components/teamOKR/TeamOKR';
-import Todo from '../components/todo/Todo';
-import { accessTokenInfo } from '../store/store';
-import { MenuContainer, MenuItem } from './../components/mainpage/menu.styled';
+import { GetKR, GetUserInfo } from '../apis/apiGET';
+import DashBoardCalendar from '../components/dashboard/calendar/Calendar';
+import DashTodo from '../components/dashboard/dashTodo/DashToDo';
+import DashOKR from '../components/dashboard/okr/DashOKR';
+import Loading from '../components/global/Loading';
+import { krDataAtom, userDetail, userId } from '../store/store';
+import {
+  OkrContainer,
+  StWrap,
+  StWrapBackground,
+} from '../styles/mainpage.styled';
 import { useQuery } from '@tanstack/react-query';
 import jwt_decode from 'jsonwebtoken/decode';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 
 export default function Mainpage() {
   const navigate = useNavigate();
 
-  const [uid, setUid] = useState(null);
+  //  accesstoken 디코딩
+  const [userInfo, setUserInfo] = useRecoilState(userDetail);
+
+  // 유저 id 상태관리
+  const setUid = useSetRecoilState(userId);
+
+  const [decodeId, setDecodeId] = useState(0);
+
   const [accessToken, setAccessToken] = useState(
     localStorage.getItem('accesstoken')
   );
 
   useEffect(() => {
-    const decodeToken = jwt_decode(accessToken);
-    const extractedUid = decodeToken.userId;
-    setUid(() => extractedUid);
+    if (localStorage.getItem('accesstoken')) {
+      const decodeToken = jwt_decode(accessToken);
+      const extractedUid = decodeToken.userId;
+      setDecodeId(extractedUid);
+    } else {
+      navigate('/signin');
+    }
   }, [accessToken]);
 
-  const { data: userInfo } = useQuery(['userInfo'], () => GetUserInfo(uid), {
-    enabled: !!uid,
+  //userInfo
+  const { userinfo, isLoading } = useQuery(
+    ['userInfo'],
+    () => GetUserInfo(decodeId),
+    {
+      enabled: !!decodeId,
+      onSuccess: data => {
+        setUserInfo(data);
+        localStorage.setItem('userId', data.userId);
+        setUid(data.userId);
+      },
+    }
+  );
+
+  //okrData
+  const setKrData = useSetRecoilState(krDataAtom);
+
+  const { data: getKr } = useQuery(['KR'], GetKR, {
+    onSuccess: response => {
+      // console.log(response);
+      setKrData(response);
+      // todo페이지에서 필요한 kr id
+      const filterArray = response.map(el => el.keyResultId);
+      filterArray.push(0);
+      localStorage.setItem('kr', JSON.stringify(filterArray));
+    },
   });
 
-  useEffect(() => {
-    if (localStorage.accesstoken === undefined) {
-      navigate('/');
-    }
-  }, []);
+  // 오늘 날짜 포맷 2023-01-01
+  // const setTodayFormat = useSetRecoilState(todayFormat);
 
-  // const menuList = ['Dashboard', 'All OKR', 'Team OKR', 'TO - DO', 'Calendar'];
+  const now = new Date();
+  let today = '';
+  if (now.getMonth() + 1 < 10 && now.getDate() < 10) {
+    today = `${now.getFullYear()}-0${now.getMonth() + 1}-0${now.getDate()}`;
+    localStorage.setItem('targetDate', today);
+    localStorage.setItem('today', today);
+    // setTodayFormat(today);
+  } else if (now.getDate() < 10) {
+    today = `${now.getFullYear()}-${now.getMonth() + 1}-0${now.getDate()}`;
+    localStorage.setItem('targetDate', today);
+    localStorage.setItem('today', today);
+    // setTodayFormat(today);
+  } else if (now.getMonth() + 1 < 10) {
+    today = `${now.getFullYear()}-0${now.getMonth() + 1}-${now.getDate()}`;
+    localStorage.setItem('targetDate', today);
+    localStorage.setItem('today', today);
+    // setTodayFormat(today);
+  } else {
+    today = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    localStorage.setItem('targetDate', today);
+    localStorage.setItem('today', today);
+    // setTodayFormat(today);
+  }
 
-  const menuList = ['Dashboard', 'TO - DO'];
-
-  const selectComponent = {
-    Dashboard: (
-      <>
-        <OkrContainer>
-          <DashBoardOKR />
-          <DashBoardTodo />
-        </OkrContainer>
-        <DashBoardCalendar />
-      </>
-    ),
-    // 'All OKR': <CompanyOKR />,
-    // 'TEAM OKR': <TeamOKR />,
-    'TO - DO': <Todo />,
-    // Calendar: <Calendar />,
-  };
-
-  const [now, setNow] = useState('Dashboard');
-  const clickNowPage = e => {
-    const { name } = e.target;
-    setNow(name);
-  };
-
+  if (isLoading) {
+    return <Loading />;
+  }
   return (
-    <Wrap>
-      {userInfo?.firstLogin ? (
-        <Portal>
-          <Tutorial />
-        </Portal>
-      ) : (
-        <>
-          <MenuContainer>
-            {menuList.map((text, i) => {
-              return (
-                <MenuItem
-                  text={text}
-                  key={i}
-                  onClick={clickNowPage}
-                  name={text}
-                  className={text === now ? 'active' : ''}>
-                  {text}
-                </MenuItem>
-              );
-            })}
-          </MenuContainer>
-          <MainContainer>{selectComponent[now]}</MainContainer>
-        </>
-      )}
-    </Wrap>
-    // <Modal />
+    <StWrapBackground>
+      <StWrap>
+        {/* {userInfo?.firstLogin === true ? (
+          <Portal>
+            <Tutorial />
+          </Portal>
+        ) : ( */}
+        <main>
+          <OkrContainer>
+            <DashOKR />
+            <DashTodo todayFormat={today} />
+          </OkrContainer>
+          <DashBoardCalendar />
+        </main>
+        {/* )} */}
+      </StWrap>
+    </StWrapBackground>
   );
 }
-
-const Wrap = styled.div`
-  width: 100%;
-  display: flex;
-  height: auto;
-  /* background-color: pink; */
-`;
-
-const MainContainer = styled.div`
-  width: 100%;
-  max-width: 154rem;
-  display: flex;
-  flex-direction: column;
-  margin-left: 2rem;
-  /* background-color: pink; */
-`;
-
-const OkrContainer = styled.div`
-  width: 100%;
-  display: flex;
-  /* background-color: skyblue; */
-`;

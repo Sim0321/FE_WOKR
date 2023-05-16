@@ -1,12 +1,23 @@
 import { DeleteTodo } from '../../../apis/apiDELETE';
 import { PatchTodo } from '../../../apis/apiPATCH';
+import {
+  PostCompletionTodo,
+  PostExpirationTodo,
+  PostProgressTodo,
+} from '../../../apis/apiPOST';
 import calender from '../../../assets/calender.png';
 import close from '../../../assets/close.png';
 import memo from '../../../assets/memo.png';
 import todo from '../../../assets/todoTODO.png';
 import trash from '../../../assets/trash.png';
 import {
+  change,
+  completionAtom,
+  expirationAtom,
+  myChange,
   patchTodoInfo,
+  progressAtom,
+  todoDateInfo,
   ToggleEndState,
   ToggleStartState,
 } from '../../../store/store';
@@ -15,6 +26,7 @@ import {
   ModalBackground,
   ModalBox,
   OKRBox,
+  TodoBox,
   ToggleContainer,
 } from './modal.styled';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -25,7 +37,7 @@ import ReactGA from 'react-ga4';
 import DatePicker, { DateObject } from 'react-multi-date-picker';
 import TimePicker from 'react-multi-date-picker/plugins/time_picker';
 import { toast } from 'react-toastify';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 const TodoPathModal = ({ onCloseModal }) => {
   useEffect(() => {
@@ -90,7 +102,7 @@ const TodoPathModal = ({ onCloseModal }) => {
     toDo: todoInfo.toDo,
   });
 
-  console.log(title);
+  // console.log(title);
 
   const [startWithTime, setStartWithTime] = useState(false);
   const [endWithTime, setEndWithTime] = useState(false);
@@ -155,6 +167,36 @@ const TodoPathModal = ({ onCloseModal }) => {
 
   const queryClient = useQueryClient();
 
+  // const [count, setCount] = useRecoilState(change);
+  // const [myCount, setMyCount] = useRecoilState(myChange);
+  // console.log(count);
+
+  const setExpiration = useSetRecoilState(expirationAtom);
+  const setProgress = useSetRecoilState(progressAtom);
+  const setCompletion = useSetRecoilState(completionAtom);
+  // 기한 만료
+  const { mutate: expirationTodo } = useMutation(PostExpirationTodo, {
+    onSuccess: response => {
+      setExpiration(response);
+    },
+  });
+
+  // 진행중
+  const { mutate: progressTodo } = useMutation(PostProgressTodo, {
+    onSuccess: response => {
+      setProgress(response);
+    },
+  });
+
+  // 완료
+  const { mutate: completionTodo } = useMutation(PostCompletionTodo, {
+    onSuccess: response => {
+      setCompletion(response);
+    },
+  });
+
+  const [info, setInfo] = useRecoilState(todoDateInfo);
+
   const { mutate: patchTodo } = useMutation(PatchTodo, {
     onSuccess: response => {
       if (process.env.NODE_ENV !== 'development') {
@@ -163,9 +205,11 @@ const TodoPathModal = ({ onCloseModal }) => {
           action: 'TODO 수정',
         });
       }
-      queryClient.invalidateQueries(['TODO']);
-      queryClient.invalidateQueries(['ALLTODO']);
-      queryClient.invalidateQueries(['PASTTODO']);
+      queryClient.invalidateQueries(['ToDo']);
+      expirationTodo({ info });
+      progressTodo({ info });
+      completionTodo({ info });
+      // queryClient.setQueryData(['patchTodo'], title);
     },
     onError: response => {
       if (process.env.NODE_ENV !== 'development') {
@@ -214,8 +258,8 @@ const TodoPathModal = ({ onCloseModal }) => {
           action: 'TODO 삭제',
         });
       }
-      queryClient.invalidateQueries(['TODO']);
-      queryClient.invalidateQueries(['ALLTODO']);
+      queryClient.invalidateQueries(['ToDo']);
+      // queryClient.invalidateQueries(['ALLTODO']);
       onCloseModal();
       toast('해당 To Do가 삭제가 완료되었습니다.');
     },
@@ -226,7 +270,7 @@ const TodoPathModal = ({ onCloseModal }) => {
           action: 'TODO 삭제 실패',
         });
       }
-      alert('팀장 및 본인이 작성한 OKR만 수정가능합니다.');
+      // alert('팀장 및 본인이 작성한 OKR만 수정가능합니다.');
     },
   });
 
@@ -241,7 +285,7 @@ const TodoPathModal = ({ onCloseModal }) => {
           <h2>To Do 수정</h2>
           <img src={close} alt='' onClick={onCloseModal} />
         </div>
-        <OKRBox>
+        <TodoBox>
           {/* <div className='object itemBox'>
             <img src={todoOkr} alt='' />
             <OkrDropDown title={title} setKid={setKid} setOid={setOid} />
@@ -251,7 +295,7 @@ const TodoPathModal = ({ onCloseModal }) => {
             <img src={todo} alt='' />
             <input
               type='text'
-              placeholder='To Do 내용을 작성하세요'
+              placeholder='할 일을 작성해 주세요'
               className='input'
               name='toDo'
               maxLength='25'
@@ -266,7 +310,7 @@ const TodoPathModal = ({ onCloseModal }) => {
             <img src={memo} alt='' />
             <input
               type='text'
-              placeholder='Memo 내용을 작성하세요'
+              placeholder='메모를 작성해 주세요'
               className='input'
               name='memo'
               defaultValue={title.memo}
@@ -434,7 +478,7 @@ const TodoPathModal = ({ onCloseModal }) => {
               {/* <PriorityDropDown todoInfo={todoInfo} setTodoInfo={setTodoInfo} /> */}
             </div>
           </div>
-        </OKRBox>
+        </TodoBox>
 
         <div className='btnBox'>
           <button onClick={onCloseModal} className='cancel'>

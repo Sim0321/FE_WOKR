@@ -1,9 +1,9 @@
 import blueF from '../../../assets/blue.png';
-import good from '../../../assets/emoji1.png';
-import bad from '../../../assets/emoji2.png';
-import normal from '../../../assets/emoji3.png';
 import four from '../../../assets/four.png';
 import grayF from '../../../assets/gray.png';
+import good from '../../../assets/newemoji1.png';
+import normal from '../../../assets/newemoji2.png';
+import bad from '../../../assets/newemoji3.png';
 import one from '../../../assets/one.png';
 import redF from '../../../assets/red.png';
 import three from '../../../assets/three.png';
@@ -17,6 +17,13 @@ export const useDropDown = (ref, initialState) => {
   // 밖에 누르면 닫히기
   useEffect(() => {
     const clickOutside = e => {
+      // console.log(ref.current);
+      // console.log(e.target);
+      // console.log(ref.current.contains(e.target));
+      // console.log(ref.current);
+      // if (ref.current && !ref.current.contains(e.target)) {
+      //   setIsOpen(!isOpen);
+      // }
       if (ref.current && !ref.current.contains(e.target)) {
         setIsOpen(!isOpen);
       }
