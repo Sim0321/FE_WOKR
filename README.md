@@ -1,5 +1,6 @@
 # 📅 WOKR
 
+[WIKI로 자세히보기](https://github.com/Sim0321/FE_WOKR/wiki)
 
 ## 🖊 프로젝트 소개 | About us
 
